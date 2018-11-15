@@ -1,0 +1,10 @@
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\obj\Debug\CobaStegano.csprojAssemblyReference.cache
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\obj\Debug\CobaStegano.Form1.resources
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\obj\Debug\CobaStegano.Properties.Resources.resources
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\obj\Debug\CobaStegano.csproj.GenerateResource.cache
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\obj\Debug\CobaStegano.csproj.CoreCompileInputs.cache
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\bin\Debug\CobaStegano.exe.config
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\bin\Debug\CobaStegano.exe
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\bin\Debug\CobaStegano.pdb
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\obj\Debug\CobaStegano.exe
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\obj\Debug\CobaStegano.pdb
