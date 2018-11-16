@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,9 +20,7 @@ namespace CobaStegano
             
         }
         Image loadedImage;
-        //Bitmap loadedTrueBitmap;
-        //Image DecryptedImage;
-        //Bitmap DecryptedBitmap;
+        
         
         Double textsize;
 
@@ -29,6 +29,28 @@ namespace CobaStegano
 
             String append = password + "|" + pesan;
             return append;
+        }
+
+        public Boolean AmbilExtensionPNG(String PathImage)
+        {
+           
+            
+            String[] pecah = PathImage.Split('.');
+            int highIndex = pecah.Length - 1;
+            if(pecah[highIndex].ToLower() == "png")
+            {
+                return true;
+
+            } else
+            {
+                return false;
+            }
+            
+        }
+        public void KonvertPNG(Image gambar, String pathImage)
+        {
+            gambar.Save(pathImage+"\\temp.png");
+
         }
         private void button1_Click(object sender, EventArgs e)
         {
@@ -46,6 +68,9 @@ namespace CobaStegano
                 textsize = (8.0 * ((loadedImage.Height * (loadedImage.Width / 3) * 3) / 3 - 1)) / 1024;
                 Console.WriteLine("Textsize =" + textsize);
                 Bitmap testing_testinggambar = new Bitmap(textBox1.Text);
+
+                //Buat debugging consolenya
+                Console.WriteLine("Extension gambar PNG = " + AmbilExtensionPNG(textBox1.Text));
 
                 //Color pixel = testing_testinggambar.GetPixel();
 
