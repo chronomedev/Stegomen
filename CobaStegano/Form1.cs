@@ -45,6 +45,9 @@ namespace CobaStegano
                 //DecryptedBitmap = new Bitmap(DecryptedImage);
                 textsize = (8.0 * ((loadedImage.Height * (loadedImage.Width / 3) * 3) / 3 - 1)) / 1024;
                 Console.WriteLine("Textsize =" + textsize);
+                Bitmap testing_testinggambar = new Bitmap(textBox1.Text);
+
+                //Color pixel = testing_testinggambar.GetPixel();
 
             }
         }
@@ -140,6 +143,7 @@ namespace CobaStegano
 
                         if (i < 1 && z < msglength)
                         {
+                            Console.WriteLine("proses decode");
                             int value = pixel.B;
                             char c = Convert.ToChar(value);
                             String letter = System.Text.Encoding.ASCII.GetString(new byte[] { Convert.ToByte(c) });
@@ -158,6 +162,45 @@ namespace CobaStegano
                 }
             }
         }
+
+        public String fungsiUnchiper(String pesan_masukan)
+        {
+            int indeks_alfabet = -1;
+            String pesan_nonchiper = "";
+            char[] alfabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+            'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                'u', 'v', 'w', 'x', 'y', 'z'};
+
+            char[] karakterSwitch = { 'z', 'y', 'x', 'w', 'v', 'u', 't', 's', 'r', 'q',
+                'p', 'o', 'n', 'm', 'l', 'k', 'j', 'i', 'h', 'g',
+                'f', 'e', 'd', 'c', 'b', 'a' };
+            for (int i = 0; i < pesan_masukan.Length; i++)
+            {
+
+                char tampung = Convert.ToChar(pesan_masukan.Substring(i, 1));
+                for (int z = 0; z < alfabet.Length; z++)
+                {
+                    Console.WriteLine("Panjang pesan_masukan: " + pesan_masukan.Length);
+                    if (tampung == karakterSwitch[z])
+                    {
+                        indeks_alfabet = z;
+                        break;
+                    }
+
+                }
+                if (indeks_alfabet != (-1))
+                {
+                    pesan_nonchiper = pesan_nonchiper + alfabet[indeks_alfabet];
+                }
+                else
+                {
+                    pesan_nonchiper = pesan_nonchiper + tampung;
+                }
+                indeks_alfabet = -1;
+            }
+            return pesan_nonchiper;
+        }
+
 
         public String fungsiChiperText(String pesan_masukan)
         {
