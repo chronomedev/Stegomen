@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -47,16 +48,17 @@ namespace CobaStegano
             }
             
         }
-        public void KonvertPNG(Image gambar, String pathImage)
+        public void KonvertPNG(String pathImageAsal, String pathImageDestination)
         {
-            gambar.Save(pathImage+"\\temp.png");
+            Bitmap gambarKonvert = new Bitmap(pathImageAsal);
+            gambarKonvert.Save(pathImageDestination+"\\temp.png", ImageFormat.Png);
 
         }
         private void button1_Click(object sender, EventArgs e)
         {
             OpenFileDialog dialokFile = new OpenFileDialog();
 
-            dialokFile.Filter = "Image Files(*.png)|*.png";
+            dialokFile.Filter = "Image Files (*.jpg)|*.jpg|Recomended!!! (*.png)|*.png";
             if (dialokFile.ShowDialog() == DialogResult.OK)
             {
                 textBox1.Text = dialokFile.FileName.ToString();
@@ -101,7 +103,20 @@ namespace CobaStegano
                 }
                 else
                 {
-                    Bitmap img = new Bitmap(textBox1.Text);
+                    Bitmap img;
+                    if (AmbilExtensionPNG(textBox1.Text) == false)
+                    {
+                        String direktori = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                        KonvertPNG(textBox1.Text, direktori);
+                        img = new Bitmap(direktori+"\\temp.png");
+                        //Buat Debugging 
+                        Console.WriteLine("----------Berhasil Convert PNG---------");
+                    } else
+                    {
+                        img = new Bitmap(textBox1.Text);
+                        Console.WriteLine("----------TIDAK CONVERT---------");
+                    }
+                    
                     Console.WriteLine("Panjang textbox 2: " + textBox2.TextLength);
                     for (int i = 0; i < img.Width; i++)
                     {
@@ -137,7 +152,9 @@ namespace CobaStegano
                         pictureBox1.ImageLocation = textBox1.Text;
                         img.Save(textBox1.Text);
                     }
-                    MessageBox.Show("Image Saved Successfully");
+                    MessageBox.Show("Gambar berhasil Disimpan!");
+                    img.Dispose();
+                    File.Delete(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)+"\\temp.png");
                     textBox2.Text = "";
                 }
             }
