@@ -144,7 +144,7 @@ namespace CobaStegano
 
                     }
                     SaveFileDialog saveFile = new SaveFileDialog();
-                    saveFile.Filter = "Image Files (*.png) | *.png";
+                    saveFile.Filter = "Recommended!!!! (*.png) | *.png|Common Images(*.jpg)|*.jpg";
                     saveFile.InitialDirectory = @"C:\Users\";
                     if (saveFile.ShowDialog() == DialogResult.OK)
                     {
