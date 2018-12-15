@@ -6,7 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data.Sql;
+using MySql.Data.MySqlClient;
 using System.Data.SqlClient;
 using System.Windows.Forms;
 
@@ -14,7 +14,7 @@ namespace CobaStegano
 {
     public partial class Form1 : Form
     {
-        SqlConnection koneksi;
+        MySqlConnection koneksi;
         kelasDatabase dbHandler;
         libraryFungsi library;
         Image loadedImage;
@@ -22,7 +22,11 @@ namespace CobaStegano
         ///////////////////Fungsi/////////////////////////////////////////////////////////////
         public Form1()
         {
-            koneksi = new SqlConnection("Data Source=den1.mssql8.gear.host;Initial Catalog=stegomandb;User ID=stegomandb;Password=stegomen!");
+            String alamat = "Server=den1.mysql1.gear.host;Database=stegomendb;Uid=stegomendb;Pwd=stegomen!;";
+            koneksi = new MySqlConnection(alamat);
+            koneksi.Open();
+            koneksi.Close();
+            Console.WriteLine("koneksi sukses");
             dbHandler = new kelasDatabase(koneksi);
             library = new libraryFungsi();
             InitializeComponent();      
@@ -241,6 +245,7 @@ namespace CobaStegano
                 }
 
                 Color msgID = img.GetPixel(img.Width - 1, img.Height - 1);
+                int id_pesan = msgID.B;
                 Console.WriteLine("ID PESAN = " + msgID);
                 Console.WriteLine("MESSAGE = " + letter);
 
@@ -250,7 +255,10 @@ namespace CobaStegano
 
                 if (pecah[pecah.Length - 1] == textBox3.Text)
                 {
+                    dbHandler.updateStatusMsg(id_pesan);
                     textBox2.Text = library.displayMessage(pecah);
+                    MessageBox.Show("Pesan berhasil di decode!");
+
                 } else
                 {
                     MessageBox.Show("Password tidak Sesuai!");

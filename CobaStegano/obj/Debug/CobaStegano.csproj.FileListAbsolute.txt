@@ -8,3 +8,8 @@ C:\Users\hansr\source\repos\CobaStegano\CobaStegano\bin\Debug\CobaStegano.exe
 C:\Users\hansr\source\repos\CobaStegano\CobaStegano\bin\Debug\CobaStegano.pdb
 C:\Users\hansr\source\repos\CobaStegano\CobaStegano\obj\Debug\CobaStegano.exe
 C:\Users\hansr\source\repos\CobaStegano\CobaStegano\obj\Debug\CobaStegano.pdb
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\bin\Debug\Google.Protobuf.dll
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\bin\Debug\MySql.Data.dll
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\bin\Debug\Google.Protobuf.xml
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\bin\Debug\MySql.Data.xml
+C:\Users\hansr\source\repos\CobaStegano\CobaStegano\obj\Debug\CobaStegano.csproj.CopyComplete

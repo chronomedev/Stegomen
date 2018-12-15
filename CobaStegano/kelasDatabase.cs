@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+
+using MySql.Data.MySqlClient;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -10,8 +11,10 @@ namespace CobaStegano
 {
     class kelasDatabase
     {
-        private SqlConnection koneksi;
-        public kelasDatabase(SqlConnection koneksi_parameter)
+        private MySqlConnection koneksi;
+        
+
+        public kelasDatabase(MySqlConnection koneksi_parameter)
         {
             koneksi = koneksi_parameter;
         }
@@ -19,9 +22,9 @@ namespace CobaStegano
         public String ekstrakIndeks(int id_pesan)
         {
             String ekstrak = "";
-            SqlCommand komenSQL = new SqlCommand("select indeks_bitpixel_perkarakter from mspesan where id_pesan ="+id_pesan+";", koneksi);
+            MySqlCommand komenMySql = new MySqlCommand("select indeks_bitpixel_perkarakter from mspesan where id_pesan ="+id_pesan+";", koneksi);
             koneksi.Open();
-            SqlDataReader baca = komenSQL.ExecuteReader();
+            MySqlDataReader baca = komenMySql.ExecuteReader();
             while (baca.Read())
             {
                 ekstrak = (baca["indeks_bitpixel_perkarakter"].ToString());
@@ -30,20 +33,44 @@ namespace CobaStegano
             return ekstrak;
         }
 
+        // public String cekStatusMsg(int id_pesan)
+        //    {
+        //        String status = "";
+        //        MySqlCommand komenMySql = new MySqlCommand("select status from mspesan where id_pesan =" + id_pesan + ";", koneksi);
+        //        koneksi.Open();
+        //        MySqlDataReader baca = komenMySql.ExecuteReader();
+        //        while (baca.Read())
+        //        {
+        //            status = baca["status"].ToString();
+        //        }
+
+        //        return status;
+        //    }
+
+
+        public void updateStatusMsg(int id_pesan)
+        {
+            MySqlCommand komenMySql = new MySqlCommand("update mspesan set status = 'dibaca' where id_pesan =" + id_pesan + ";", koneksi);
+            koneksi.Open();
+            komenMySql.ExecuteNonQuery();
+            koneksi.Close();
+        }
+
         public void insertDatabase(String parameter)
         {
-            SqlCommand komenSQL = new SqlCommand("insert into mspesan(indeks_bitpixel_perkarakter, penerima)values('" + parameter + "', 'ehhh');", koneksi);
+            MySqlCommand komenMySql = new MySqlCommand("insert into mspesan(indeks_bitpixel_perkarakter, user_id_line_profile_penerima, status)values('" + parameter + "', 'dieindonesianer', 'enkrip');", koneksi);
+            //komenMySql.CommandTimeout = 60;
             koneksi.Open();
-            komenSQL.ExecuteNonQuery();
+            komenMySql.ExecuteNonQuery();
             koneksi.Close();
         }
 
         public int getLastMessageID()
         {
             String ekstrak = null;
-            SqlCommand komenSQL = new SqlCommand("select top 1 id_pesan from mspesan order by id_pesan desc;", koneksi);
+            MySqlCommand komenMySql = new MySqlCommand("select id_pesan from mspesan order by id_pesan desc LIMIT 1;", koneksi);
             koneksi.Open();
-            SqlDataReader baca = komenSQL.ExecuteReader();
+            MySqlDataReader baca = komenMySql.ExecuteReader();
             while (baca.Read())
             {
                 ekstrak = baca["id_pesan"].ToString();
