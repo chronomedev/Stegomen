@@ -1,41 +1,42 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data.Sql;
+using System.Data.SqlClient;
 using System.Windows.Forms;
 
 namespace CobaStegano
 {
     public partial class Form1 : Form
     {
+        SqlConnection koneksi;
+        kelasDatabase dbHandler;
+        libraryFungsi library;
+        Image loadedImage;
+        Double textsize;
+        ///////////////////Fungsi/////////////////////////////////////////////////////////////
         public Form1()
         {
-            InitializeComponent();
-            
+            koneksi = new SqlConnection("Data Source=den1.mssql8.gear.host;Initial Catalog=stegomandb;User ID=stegomandb;Password=stegomen!");
+            dbHandler = new kelasDatabase(koneksi);
+            library = new libraryFungsi();
+            InitializeComponent();      
         }
-        Image loadedImage;
-        
-        
-        Double textsize;
+
 
         public String kasihPassword(String password, String pesan)
         {
-
             String append = password + "|" + pesan;
             return append;
         }
 
         public Boolean AmbilExtensionPNG(String PathImage)
-        {
-           
-            
+        { 
             String[] pecah = PathImage.Split('.');
             int highIndex = pecah.Length - 1;
             if(pecah[highIndex].ToLower() == "png")
@@ -50,10 +51,14 @@ namespace CobaStegano
         }
         public void KonvertPNG(String pathImageAsal, String pathImageDestination)
         {
+        
             Bitmap gambarKonvert = new Bitmap(pathImageAsal);
             gambarKonvert.Save(pathImageDestination+"\\temp.png", ImageFormat.Png);
-
         }
+        ////////////Events///////////////////////////////////////////////////////////////////////////////////
+        
+
+        //Import file gambar
         private void button1_Click(object sender, EventArgs e)
         {
             OpenFileDialog dialokFile = new OpenFileDialog();
@@ -61,24 +66,26 @@ namespace CobaStegano
             dialokFile.Filter = "Image Files (*.jpg)|*.jpg|Recomended!!! (*.png)|*.png";
             if (dialokFile.ShowDialog() == DialogResult.OK)
             {
-                textBox1.Text = dialokFile.FileName.ToString();
-                pictureBox1.ImageLocation = textBox1.Text;
-                loadedImage = Image.FromFile(textBox1.Text);
-                //loadedTrueBitmap = new Bitmap(loadedImage);
-                //DecryptedImage = Image.FromFile(textBox1.Text);
-                //DecryptedBitmap = new Bitmap(DecryptedImage);
-                textsize = (8.0 * ((loadedImage.Height * (loadedImage.Width / 3) * 3) / 3 - 1)) / 1024;
-                Console.WriteLine("Textsize =" + textsize);
-                Bitmap testing_testinggambar = new Bitmap(textBox1.Text);
-
-                //Buat debugging consolenya
-                Console.WriteLine("Extension gambar PNG = " + AmbilExtensionPNG(textBox1.Text));
-
-                //Color pixel = testing_testinggambar.GetPixel();
+                loadedImage = Image.FromFile(dialokFile.FileName.ToString());
+                if (loadedImage.Height < 100 || loadedImage.Width < 100)
+                {
+                    MessageBox.Show("Gambar minimal harus lebih dari 100 x 100 pixel");
+                } else
+                {
+                    textBox1.Text = dialokFile.FileName.ToString();
+                    pictureBox1.ImageLocation = textBox1.Text;
+                    textsize = (8.0 * ((loadedImage.Height * (loadedImage.Width / 3) * 3) / 3 - 1)) / 1024;
+                    Console.WriteLine("Textsize =" + textsize);
+                    Bitmap testing_testinggambar = new Bitmap(textBox1.Text);
+                    //Buat debugging consolenya
+                    Console.WriteLine("Extension gambar PNG = " + AmbilExtensionPNG(textBox1.Text));
+                }
 
             }
         }
 
+        
+        //////encrypt gambar
         private void button2_Click(object sender, EventArgs e)
         {
             if(textBox3.Text == null || textBox3.Text == "")
@@ -92,18 +99,22 @@ namespace CobaStegano
 
             } else 
             {
+                Bitmap img;
                 string messagetext = kasihPassword(textBox2.Text, textBox3.Text);
                 double textlength = System.Text.ASCIIEncoding.ASCII.GetByteCount(messagetext);
+                Console.WriteLine("Text length normal: " + messagetext.Length);
                 Console.WriteLine("Textlength:" + textlength);
-                double textlen = textlength / 1024;
+                
 
-                if (textsize < textlen)
+                if (textlength-2>loadedImage.Width)
                 {
-                    MessageBox.Show("Image cannot save text more than" + textsize + "KB");
+                    MessageBox.Show("Ukuran gambar terlalu besar. Silahkan perpendek teksnya");
                 }
                 else
                 {
-                    Bitmap img;
+
+                    String tampung_perbit_pixel = "";
+                    
                     if (AmbilExtensionPNG(textBox1.Text) == false)
                     {
                         String direktori = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
@@ -118,31 +129,50 @@ namespace CobaStegano
                     }
                     
                     Console.WriteLine("Panjang textbox 2: " + textBox2.TextLength);
-                    for (int i = 0; i < img.Width; i++)
-                    {
-                        for (int j = 0; j < img.Height; j++)
-                        {
-                            Color pixel = img.GetPixel(i, j);
-                            //Console.WriteLine("value pixel:" + pixel);
-                            if (i < 1 && j < textBox2.TextLength)
-                            {
-                                Console.WriteLine("R= [" + i + "][" + j + "]=" + pixel.R);
-                                Console.WriteLine("G= [" + i + "][" + j + "]=" + pixel.G);
-                                Console.WriteLine("B= [" + i + "][" + j + "]=" + pixel.B);
-                                char letter = Convert.ToChar(textBox2.Text.Substring(j, 1));
-                                int value = Convert.ToInt32(letter);
-                                Console.WriteLine("letter :" + letter + " value :" + value);
-                                img.SetPixel(i, j, Color.FromArgb(pixel.R, pixel.G, value));
+                    int tampung_panjang_karakter = textBox2.TextLength;
 
-                            }
-                            if (i == img.Width - 1 && j == img.Height - 1)
-                            {
-                                img.SetPixel(i, j, Color.FromArgb(pixel.R, pixel.G, textBox2.TextLength));
-                            }
+                    //Looping per karakter
+                    for(int indeks_karakter = 0; indeks_karakter < messagetext.Length; indeks_karakter++)
+                    {
+                        char karakter = Convert.ToChar(messagetext.Substring(indeks_karakter, 1));
+                        int value = Convert.ToInt32(karakter);
+                        String char_binary = Convert.ToString(value, 2);
+                        Console.WriteLine("VALUE CHAR = " + value+" BINER CHAR = " + char_binary);
+
+
+                        //looping per 1 bit di LSB masukin pixelnya
+                        for(int i = 0; i < char_binary.Length; i++)
+                        {
+                            Console.WriteLine("LOOP BIT ========" + i);
+                            char tampung = Convert.ToChar(char_binary.Substring(i, 1));
+                            Color pixel = img.GetPixel(indeks_karakter, i);
+                            int pixel_B_value = pixel.B;
+
+                            Console.WriteLine("PIXEL B = " + pixel_B_value);
+                            String biner_pixel_B = Convert.ToString(pixel_B_value, 2);
+                            Console.WriteLine("BINER_PIXEL = " + biner_pixel_B);
+                            String ubahbit = library.ubah_bit(biner_pixel_B, tampung);
+
+                            Console.WriteLine("UBAH BIT = " + ubahbit);
+                            int newBinary_pixelB = Convert.ToInt32(ubahbit, 2);
+                            Console.WriteLine(newBinary_pixelB);
+                            img.SetPixel(indeks_karakter, i, Color.FromArgb(pixel.R, pixel.G, newBinary_pixelB));
 
                         }
-
+                        //tampung indeks perbit di satu pixel agar nanti waktu decrypt bisa di fetch diambil length nya
+                        tampung_perbit_pixel = tampung_perbit_pixel + char_binary.Length + "-";
+                        
                     }
+
+                    dbHandler.insertDatabase(tampung_perbit_pixel);
+                    Color pixelTerakhir = img.GetPixel(img.Width-1, img.Height-1);
+
+                    //tampung messageID di pixel paling kanan bawah
+                    int id_pesan = dbHandler.getLastMessageID();
+                    Console.WriteLine("MESSAGE IDNYA DIMASUKIN = " + id_pesan);
+                    img.SetPixel(img.Width-1, img.Height-1, Color.FromArgb(pixelTerakhir.R, pixelTerakhir.B, id_pesan));
+
+                    Console.WriteLine("PANJANG PERINDEKS: " + tampung_perbit_pixel);
                     SaveFileDialog saveFile = new SaveFileDialog();
                     saveFile.Filter = "Recommended!!!! (*.png) | *.png|Common Images(*.jpg)|*.jpg";
                     saveFile.InitialDirectory = @"C:\Users\";
@@ -160,7 +190,7 @@ namespace CobaStegano
             }
         }
 
-
+        //Decrypt Gambar
         private void button3_Click(object sender, EventArgs e)
         {
             if(textBox1.Text =="" || textBox1.Text == null)
@@ -170,118 +200,65 @@ namespace CobaStegano
             {
 
                 MessageBox.Show("Isi passwordnya terlebih dahulu!");
+                //Console.WriteLine("ISI INDEKS" + dbHandler.ekstrakIndeks());
 
             } else 
             {
                 Bitmap img = new Bitmap(textBox1.Text);
+                Color pixel_msg_ID = img.GetPixel(img.Width - 1, img.Height - 1);
+                int messageID = pixel_msg_ID.B;
+                String[] ekstrak_indeks_karakter = dbHandler.ekstrakIndeks(messageID).Split('-');
+                Console.WriteLine(ekstrak_indeks_karakter[0]);
+
+               
                 String msg = "";
-                Color lastpixel = img.GetPixel(img.Width - 1, img.Height - 1);
-                int msglength = lastpixel.B;
-                for(int i = 0; i < img.Width; i++)
+                String letter = "";
+                for (int i = 0; i < ekstrak_indeks_karakter.Length-1; i++)
                 {
-                    for(int z = 0; z< img.Height; z++)
+                    String getLSBEkstrak = "";
+                    String binerCharEkstrak = "";
+                    int get_bit_IndexChar = Convert.ToInt32(ekstrak_indeks_karakter[i]);
+                    for(int z = 0; z < get_bit_IndexChar; z++)
                     {
                         Color pixel = img.GetPixel(i, z);
+                        int value_pixelB = pixel.B;
+                        String binerPixel = Convert.ToString(value_pixelB, 2);
+                        Console.WriteLine("BINER PIXEL DECRYPT = " + binerPixel);
+                        Console.WriteLine("----" + get_bit_IndexChar);
+                        //Console.WriteLine("---------" + binerPixel.Substring(getIndexChar - 1, 1));
+                        //ambil 1 bit warna blue tiap pixel ke bawah
+                        getLSBEkstrak = getLSBEkstrak + binerPixel.Substring(binerPixel.Length-1, 1);
 
-                        if (i < 1 && z < msglength)
-                        {
-                            Console.WriteLine("proses decode");
-                            int value = pixel.B;
-                            char c = Convert.ToChar(value);
-                            String letter = System.Text.Encoding.ASCII.GetString(new byte[] { Convert.ToByte(c) });
-                            Console.WriteLine("letter: " + letter + "Value : " + value);
-                            msg = msg + letter;
-                            textBox2.Text = msg;
-                        }
                     }
+                    int konvertValue = Convert.ToInt32(getLSBEkstrak, 2);
+                    Console.WriteLine("VALUE CHAR EKSTRAK " + konvertValue);
+                    char convertExtract = Convert.ToChar(konvertValue);
+                    letter = letter + convertExtract.ToString();
+
+                    Console.WriteLine("VALUE DI CONVERT DECRYPT = " + letter);
+
+                    Console.WriteLine("Looping: " + i + " ================" + getLSBEkstrak);
                 }
-                if(textBox2.Text == "")
+
+                Color msgID = img.GetPixel(img.Width - 1, img.Height - 1);
+                Console.WriteLine("ID PESAN = " + msgID);
+                Console.WriteLine("MESSAGE = " + letter);
+
+
+                //matching dengan password
+                String[] pecah = letter.Split('|');
+
+                if (pecah[pecah.Length - 1] == textBox3.Text)
                 {
-                    MessageBox.Show("Gak ada pesan disampaikan");
+                    textBox2.Text = library.displayMessage(pecah);
                 } else
                 {
-                    MessageBox.Show("Berhasil!");
+                    MessageBox.Show("Password tidak Sesuai!");
                 }
-            }
-        }
-
-        public String fungsiUnchiper(String pesan_masukan)
-        {
-            int indeks_alfabet = -1;
-            String pesan_nonchiper = "";
-            char[] alfabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-            'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                'u', 'v', 'w', 'x', 'y', 'z'};
-
-            char[] karakterSwitch = { 'z', 'y', 'x', 'w', 'v', 'u', 't', 's', 'r', 'q',
-                'p', 'o', 'n', 'm', 'l', 'k', 'j', 'i', 'h', 'g',
-                'f', 'e', 'd', 'c', 'b', 'a' };
-            for (int i = 0; i < pesan_masukan.Length; i++)
-            {
-
-                char tampung = Convert.ToChar(pesan_masukan.Substring(i, 1));
-                for (int z = 0; z < alfabet.Length; z++)
-                {
-                    Console.WriteLine("Panjang pesan_masukan: " + pesan_masukan.Length);
-                    if (tampung == karakterSwitch[z])
-                    {
-                        indeks_alfabet = z;
-                        break;
-                    }
-
-                }
-                if (indeks_alfabet != (-1))
-                {
-                    pesan_nonchiper = pesan_nonchiper + alfabet[indeks_alfabet];
-                }
-                else
-                {
-                    pesan_nonchiper = pesan_nonchiper + tampung;
-                }
-                indeks_alfabet = -1;
-            }
-            return pesan_nonchiper;
-        }
-
-
-        public String fungsiChiperText(String pesan_masukan)
-        {
-            int indeks_alfabet = -1;
-            String pesan_chiper ="";
-            char[] alfabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-            'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                'u', 'v', 'w', 'x', 'y', 'z'};
-
-            char[] karakterSwitch = { 'z', 'y', 'x', 'w', 'v', 'u', 't', 's', 'r', 'q',
-                'p', 'o', 'n', 'm', 'l', 'k', 'j', 'i', 'h', 'g',
-                'f', 'e', 'd', 'c', 'b', 'a' };
-            for(int i = 0; i < pesan_masukan.Length; i++)
-            {
                 
-                char tampung = Convert.ToChar(pesan_masukan.Substring(i, 1));
-                for(int z = 0; z<alfabet.Length; z++)
-                {
-                    Console.WriteLine("Panjang pesan_masukan: " + pesan_masukan.Length);
-                    if (tampung == alfabet[z])
-                    {
-                        indeks_alfabet = z;
-                        break;
-                    }
-                   
-                }
-                if(indeks_alfabet != (-1))
-                {
-                    pesan_chiper = pesan_chiper + karakterSwitch[indeks_alfabet];
-                } else
-                {
-                    pesan_chiper = pesan_chiper + tampung;
-                }
-                indeks_alfabet = -1;
             }
-            
-            return pesan_chiper;
-
         }
+
         private void button4_Click(object sender, EventArgs e)
         {
             
@@ -293,7 +270,7 @@ namespace CobaStegano
             String[] pecahSpasi = textBox3.Text.Split(' ');
             for(int i= 0; i < pecahSpasi.Length; i++)
             {
-                all_chiper = all_chiper + fungsiChiperText(pecahSpasi[i]) + " ";
+                all_chiper = all_chiper + library.fungsiChiperText(pecahSpasi[i]) + " ";
             }
             MessageBox.Show("Hasil: " + all_chiper);
             Console.WriteLine(all_chiper);
