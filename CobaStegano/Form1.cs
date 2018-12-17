@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using System.Data.SqlClient;
 using System.Windows.Forms;
+using System.Net;
 
 namespace CobaStegano
 {
@@ -19,9 +20,13 @@ namespace CobaStegano
         libraryFungsi library;
         Image loadedImage;
         Double textsize;
+        String id_user_masuk;
+
+        String id_penerima = null;
         ///////////////////Fungsi/////////////////////////////////////////////////////////////
-        public Form1()
+        public Form1(String id_user)
         {
+            id_user_masuk = id_user;
             String alamat = "Server=den1.mysql1.gear.host;Database=stegomendb;Uid=stegomendb;Pwd=stegomen!;";
             koneksi = new MySqlConnection(alamat);
             koneksi.Open();
@@ -92,7 +97,10 @@ namespace CobaStegano
         //////encrypt gambar
         private void button2_Click(object sender, EventArgs e)
         {
-            if(textBox3.Text == null || textBox3.Text == "")
+            if(textBox4.Text == null || textBox4.Text == "")
+            {
+                MessageBox.Show("Kasih ID penerima dari Line tersebut");
+            } else if(textBox3.Text == null || textBox3.Text == "")
             {
                 MessageBox.Show("kasih dulu passwordnya untuk kemanan pesan!");
 
@@ -105,12 +113,12 @@ namespace CobaStegano
             {
                 Bitmap img;
                 string messagetext = kasihPassword(textBox2.Text, textBox3.Text);
-                double textlength = System.Text.ASCIIEncoding.ASCII.GetByteCount(messagetext);
+                //double textlength = System.Text.ASCIIEncoding.ASCII.GetByteCount(messagetext);
                 Console.WriteLine("Text length normal: " + messagetext.Length);
-                Console.WriteLine("Textlength:" + textlength);
+                //Console.WriteLine("Textlength:" + textlength);
                 
 
-                if (textlength-2>loadedImage.Width)
+                if (messagetext.Length-2>loadedImage.Width)
                 {
                     MessageBox.Show("Ukuran gambar terlalu besar. Silahkan perpendek teksnya");
                 }
@@ -168,7 +176,8 @@ namespace CobaStegano
                         
                     }
 
-                    dbHandler.insertDatabase(tampung_perbit_pixel);
+                    //insert status dan indeks bit pixel ke database serta id penerimanya 
+                    dbHandler.insertDatabase(tampung_perbit_pixel, dbHandler.ambilIdUser(textBox4.Text));
                     Color pixelTerakhir = img.GetPixel(img.Width-1, img.Height-1);
 
                     //tampung messageID di pixel paling kanan bawah
@@ -187,6 +196,12 @@ namespace CobaStegano
                         img.Save(textBox1.Text);
                     }
                     MessageBox.Show("Gambar berhasil Disimpan!");
+
+                    //kirim notif ada yang buat pesan rahasia ke dia
+                    if(library.sendToPenerima(dbHandler.ambilIdUser(textBox4.Text), dbHandler.ekstrakUserName(id_user_masuk), id_pesan) != "berhasil")
+                    {
+                        //MessageBox.Show("Gagal mengirim ke line penerima anda");
+                    }
                     img.Dispose();
                     File.Delete(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)+"\\temp.png");
                     textBox2.Text = "";
@@ -258,6 +273,11 @@ namespace CobaStegano
                     dbHandler.updateStatusMsg(id_pesan);
                     textBox2.Text = library.displayMessage(pecah);
                     MessageBox.Show("Pesan berhasil di decode!");
+                    Console.WriteLine("ID USER MASUK====" + dbHandler.ekstrakUserName(id_user_masuk));
+                    if (library.notifBuka(dbHandler.ekstrakUserName(id_user_masuk),id_pesan, dbHandler.ambilIdPenerimaByPesan(id_pesan)) != "berhasil")
+                    {
+                        //MessageBox.Show("Gagal mengirim ke line penerima anda");
+                    }
 
                 } else
                 {
@@ -282,6 +302,19 @@ namespace CobaStegano
             }
             MessageBox.Show("Hasil: " + all_chiper);
             Console.WriteLine(all_chiper);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            id_penerima = dbHandler.ambilIdUser(textBox4.Text);
+            if(id_penerima == null || id_penerima == "")
+            {
+                MessageBox.Show("ID penerima belum terdaftar di bot Stegomen");
+            } else
+            {
+                //textBox4.Text = id_penerima;
+                MessageBox.Show("User tersebut terdaftar!");
+            }
         }
     }
     }

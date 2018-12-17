@@ -4,12 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace CobaStegano
 {
     class libraryFungsi
     {
 
+
+        public String sendToPenerima(String user_id_penerima, String display_name_pengirim, int id_pesan)
+        {
+            WebClient clientWeb = new WebClient();
+            String result = clientWeb.DownloadString(string.Format("https://hansrenee-development.000webhostapp.com/ceh/apphandler.php?user_id=" + user_id_penerima + "&display_name_pengirim=" + display_name_pengirim+"&id_pesan="+id_pesan));
+            return result;
+        }
+
+        
+        public String notifBuka(String nama_pembuka, int id_pesan, String id_penerima)
+        {
+            WebClient clientWeb = new WebClient();
+            String result = clientWeb.DownloadString(string.Format("https://hansrenee-development.000webhostapp.com/ceh/apphandlerUpdate.php?nama_pembuka=" + nama_pembuka + "&id_pesan=" + id_pesan + "&id_penerima="+ id_penerima));
+            return result;
+        }
 
         public String ubah_bit(String biner_pixel, char bit_ambil)
         {
